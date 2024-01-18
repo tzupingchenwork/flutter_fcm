@@ -10,6 +10,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await Future.delayed(const Duration(seconds: 1));
+  String? token = await FirebaseMessaging.instance.getToken();
+  print(token);
   runApp(const MyApp());
 }
 
