@@ -12,7 +12,9 @@ void main() async {
   await Firebase.initializeApp();
   await Future.delayed(const Duration(seconds: 1));
   String? token = await FirebaseMessaging.instance.getToken();
-  print(token);
+  debugPrint(token);
+  await FirebaseMessaging.instance
+      .subscribeToTopic('your_topic_name'); // Subscribe to Firebase topic
   runApp(const MyApp());
 }
 
