@@ -25,6 +25,7 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> {
   String _message = '';
+  String? token;
 
   @override
   void initState() {
@@ -59,7 +60,7 @@ class MyAppState extends State<MyApp> {
           _firebaseMessagingBackgroundHandler);
 
       // 獲取Token
-      String? token = await messaging.getToken();
+      token = await messaging.getToken();
       debugPrint("FCM Token: $token");
     } else {
       debugPrint("用戶未授權消息");
@@ -85,7 +86,13 @@ class MyAppState extends State<MyApp> {
           title: const Text('FCM Demo'),
         ),
         body: Center(
-          child: Text(_message),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Token: ${token ?? 'No token available'}'),
+              Text('Message: $_message'),
+            ],
+          ),
         ),
       ),
     );
