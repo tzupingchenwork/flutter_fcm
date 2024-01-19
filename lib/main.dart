@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+// 初始化本地通知插件
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+// 用於處理後台訊息的函數
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("Handling a background message: ${message.messageId}");
@@ -10,11 +16,31 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await Future.delayed(const Duration(seconds: 1));
-  String? token = await FirebaseMessaging.instance.getToken();
-  debugPrint(token);
-  await FirebaseMessaging.instance
-      .subscribeToTopic('your_topic_name'); // Subscribe to Firebase topic
+
+  // 初始化本地通知設定
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const DarwinInitializationSettings darwinInitializationSettings =
+      DarwinInitializationSettings();
+  const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: darwinInitializationSettings);
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) {
+      switch (notificationResponse.notificationResponseType) {
+        case NotificationResponseType.selectedNotification:
+          debugPrint(
+              'NotificationResponseType.selectedNotification:${notificationResponse.payload}');
+          break;
+        case NotificationResponseType.selectedNotificationAction:
+          debugPrint('NotificationResponseType.selectedNotificationAction:');
+          break;
+      }
+    },
+  );
+
   runApp(const MyApp());
 }
 
@@ -48,25 +74,53 @@ class MyAppState extends State<MyApp> {
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       debugPrint("用戶已授予消息權限");
 
-      // 處理初始消息
-      RemoteMessage? initialMessage =
-          await FirebaseMessaging.instance.getInitialMessage();
-      if (initialMessage != null) {
-        _handleMessage(initialMessage);
-      }
-
       // 設置消息處理器
-      FirebaseMessaging.onMessage.listen(_handleMessage);
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        // 顯示通知
+        _showNotification(message.notification?.title ?? 'No title',
+            message.notification?.body ?? 'No body');
+        _handleMessage(message);
+      });
       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
       FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler);
 
-      // 獲取Token
       token = await messaging.getToken();
       debugPrint("FCM Token: $token");
     } else {
       debugPrint("用戶未授權消息");
     }
+  }
+
+  void _showNotification(String title, String body) async {
+    var bigTextStyleInformation = BigTextStyleInformation(
+      body,
+      htmlFormatBigText: true,
+      contentTitle: title,
+      htmlFormatContentTitle: true,
+      summaryText: body,
+      htmlFormatSummaryText: true,
+    );
+
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'your channel id',
+      'your channel name',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+      styleInformation: bigTextStyleInformation,
+    );
+
+    var iosDetails = const DarwinNotificationDetails();
+    var details = NotificationDetails(
+        android: androidPlatformChannelSpecifics, iOS: iosDetails);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      details,
+      payload: 'item x',
+    );
   }
 
   void _handleMessage(RemoteMessage message) {
@@ -91,8 +145,14 @@ class MyAppState extends State<MyApp> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Token: ${token ?? 'No token available'}'),
-              Text('Message: $_message'),
+              Text('Token: ${token ?? 'No token available'}',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Message: $_message',
+                    style: const TextStyle(fontSize: 20)),
+              ),
             ],
           ),
         ),
