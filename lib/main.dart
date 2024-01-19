@@ -134,26 +134,43 @@ class MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Firebase Messaging Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey, // 更新主題顏色
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        textTheme: const TextTheme(
+          // 自定義文本樣式
+          titleLarge: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          bodyMedium: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
       ),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('FCM Demo'),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.notifications),
+              onPressed: () {
+                // 添加通知圖標的操作
+              },
+            ),
+          ],
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Token: ${token ?? 'No token available'}',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold)),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('Message: $_message',
-                    style: const TextStyle(fontSize: 20)),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Token: ${token ?? 'No token available'}',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'Message: $_message',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
           ),
         ),
       ),
