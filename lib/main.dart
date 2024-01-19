@@ -161,12 +161,12 @@ class MyAppState extends State<MyApp> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Token: ${token ?? 'No token available'}',
+                  'Message: $_message',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8.0),
                 Text(
-                  'Message: $_message',
+                  'Token: ${token ?? 'No token available'}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
