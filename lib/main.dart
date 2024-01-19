@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
 
 // 初始化本地通知插件
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -45,14 +44,30 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  MyAppState createState() => MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'FCM Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MyHomePage(),
+    );
+  }
 }
 
-class MyAppState extends State<MyApp> {
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
+  @override
+  MyHomePageState createState() => MyHomePageState();
+}
+
+class MyHomePageState extends State<MyHomePage> {
+  List<String> messages = [];
   String _message = '';
   String? token;
 
@@ -124,9 +139,33 @@ class MyAppState extends State<MyApp> {
     );
   }
 
+  void _showHistoryDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("歷史訊息"),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: messages.map((msg) => Text(msg)).toList(),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('關閉'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleMessage(RemoteMessage message) {
+    final messageText = message.notification?.body ?? 'Empty message';
     setState(() {
-      _message = message.notification?.body ?? 'Empty message';
+      _message = messageText;
+      messages.add(messageText);
     });
   }
 
@@ -150,7 +189,7 @@ class MyAppState extends State<MyApp> {
             IconButton(
               icon: const Icon(Icons.notifications),
               onPressed: () {
-                // 添加通知圖標的操作
+                _showHistoryDialog();
               },
             ),
           ],
@@ -173,6 +212,7 @@ class MyAppState extends State<MyApp> {
                       size: 100,
                       color: Colors.blue,
                     ),
+                    const SizedBox(height: 32),
                     Text(
                       'Message: $_message',
                       style: Theme.of(context).textTheme.titleLarge,
